@@ -144,7 +144,7 @@ async function enviarMensaje() {
   }
 
   try {
-    const res = await fetch('http://localhost:3000/api/contacto', {
+    const res = await fetch('https://filterpro-h3jz.onrender.com/api/contacto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre, correo, asunto, mensaje })
