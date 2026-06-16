@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<tittle>FilterPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 62.5%; }
+  body { font-family: 'DM Sans', sans-serif; font-size: 1.6rem; background: #0d0d0d; color: #f5f4f0; min-height: 100vh; display: flex; flex-direction: column; }
+
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.8rem 5%; background: #0d0d0d; border-bottom: 1px solid rgba(255,255,255,0.07); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+  .logo { font-family: 'Comic Sans MS', sans-serif; font-weight: 800; font-size: 2.2rem; color: #f5f4f0; text-decoration: none; }
+  .logo span { color: #e85c2b; }
+  .nav-links { display: flex; gap: 3.2rem; list-style: none; }
+  .nav-links a { font-size: 1.5rem; color: rgba(245,244,240,0.55); text-decoration: none; }
+  .nav-links a:hover { color: #f5f4f0; }
+  .nav-right { display: flex; align-items: center; gap: 1.2rem; }
+  .btn-carrito { position: relative; background: transparent; border: 1px solid rgba(255,255,255,0.22); color: #f5f4f0; font-family: 'Comic Sans MS', sans-serif; font-size: 1.4rem; padding: 0.8rem 1.8rem; border-radius: 4px; text-decoration: none; }
+  .badge {visibility: hidden; position: absolute; top: -7px; right: -7px; font-size: 1rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .btn-ingresar { background: #f5f4f0; color: #0d0d0d; font-family: 'Comic Sans MS', sans-serif; font-size: 1.4rem; font-weight: 500; padding: 0.8rem 2rem; border-radius: 4px; border: none; text-decoration: none; }
+
+  main { flex: 1; padding: 10rem 5% 6rem; }
+  .wrap { max-width: 86rem; margin: 0 auto; }
+  .page-title { font-family: 'Comic Sans MS', sans-serif; font-size: 3.2rem; font-weight: 800; margin-bottom: 0.6rem; }
+  .page-sub { font-size: 1.5rem; color: rgba(245,244,240,0.45); margin-bottom: 4.8rem; }
+
+  /* TABS */
+  .ayuda-tabs { display: flex; gap: 0; background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px 6px 0 0; overflow: hidden; margin-bottom: 0; }
+  .ayuda-tab { flex: 1; background: none; border: none; color: rgba(245,244,240,0.4); font-family: 'Comic Sans MS', sans-serif; font-size: 1.4rem; font-weight: 700; padding: 1.4rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .ayuda-tab.active { color: #f5f4f0; background: rgba(255,255,255,0.04); border-bottom: 2px solid #e85c2b; }
+
+  .ayuda-panel { background: #161616; border: 1px solid rgba(255,255,255,0.08); border-top: none; border-radius: 0 0 6px 6px; padding: 3.2rem; display: none; }
+  .ayuda-panel.show { display: block; }
+
+  /* FAQ */
+  .faq-item { border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-pregunta { width: 100%; background: none; border: none; color: #f5f4f0; font-family: 'Comic Sans MS', sans-serif; font-size: 1.5rem; font-weight: 700; padding: 1.8rem 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .faq-pregunta:hover { color: #e85c2b; }
+  .faq-icono { font-size: 1.6rem; transition: transform 0.2s; flex-shrink: 0; }
+  .faq-icono.abierto { transform: rotate(45deg); }
+  .faq-respuesta { font-size: 1.4rem; line-height: 1.75; color: rgba(245,244,240,0.55); padding-bottom: 1.8rem; display: none; }
+  .faq-respuesta.show { display: block; }
+
+  /* REPORTE ERROR */
+  .form-group { margin-bottom: 2rem; }
+  .form-group label { display: block; font-size: 1.2rem; font-weight: 500; color: rgba(245,244,240,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #f5f4f0; font-family: 'DM Sans', sans-serif; font-size: 1.5rem; padding: 1.2rem 1.4rem; border-radius: 4px; outline: none; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #e85c2b; }
+  .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(245,244,240,0.2); }
+  .form-group select option { background: #1a1a1a; }
+  .form-group textarea { resize: vertical; min-height: 12rem; }
+  .btn-enviar { background: #e85c2b; color: white; border: none; font-family: 'Comic Sans MS', sans-serif; font-size: 1.5rem; font-weight: 700; padding: 1.3rem 3rem; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+  .btn-enviar:hover { background: #cf4e23; }
+
+  /* ÉXITO REPORTE */
+  .reporte-exito { text-align: center; padding: 4rem 0; display: none; }
+  .reporte-exito span { font-size: 4rem; display: block; margin-bottom: 1.6rem; }
+  .reporte-exito h3 { font-family: 'Comic Sans MS', sans-serif; font-size: 2.2rem; font-weight: 800; color: #f5f4f0; margin-bottom: 1rem; }
+  .reporte-exito p { font-size: 1.5rem; color: rgba(245,244,240,0.45); }
+
+  /* VOLVER */
+  .volver-section { margin-top: 4.8rem; padding-top: 3.2rem; border-top: 1px solid rgba(255,255,255,0.08); text-align: center; }
+  .volver-section p { font-size: 1.5rem; color: rgba(245,244,240,0.4); margin-bottom: 1.6rem; }
+  .volver-btns { display: flex; gap: 1.4rem; justify-content: center; flex-wrap: wrap; }
+  .btn-volver { display: inline-block; padding: 1.1rem 2.4rem; border-radius: 4px; font-family: 'Comic Sans MS', sans-serif; font-size: 1.4rem; font-weight: 700; text-decoration: none; transition: all 0.2s; }
+  .btn-volver-primary { background: #e85c2b; color: white; }
+  .btn-volver-primary:hover { background: #cf4e23; }
+  .btn-volver-outline { background: transparent; color: #f5f4f0; border: 1px solid rgba(255,255,255,0.22); }
+  .btn-volver-outline:hover { border-color: rgba(255,255,255,0.5); }
+
+  footer { background: #0d0d0d; padding: 5.6rem 5% 3rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); }
+  .footer-grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr; gap: 4rem; padding-bottom: 4rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 2.8rem; }
+  .footer-brand .logo { display: inline-block; margin-bottom: 1.6rem; }
+  .footer-desc { font-size: 1.4rem; line-height: 1.75; color: rgba(245,244,240,0.38); max-width: 30rem; }
+  .footer-col h4 { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; color: #f5f4f0; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.8rem; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 1.1rem; }
+  .footer-col ul a { font-size: 1.4rem; color: rgba(245,244,240,0.40); text-decoration: none; }
+  .footer-col ul a:hover { color: rgba(245,244,240,0.8); }
+  .footer-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .footer-copy { font-size: 1.3rem; color: rgba(245,244,240,0.22); }
+
+  @media (max-width: 900px) { .nav-links { display: none; } .footer-grid { grid-template-columns: 1fr; } .footer-bottom { flex-direction: column; gap: 0.8rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Filter<span>Pro</span></a>
+  <ul class="nav-links">
+
+  </ul>
+  <div class="nav-right">
+    <a href="carrito.html" class="btn-carrito">Carrito<span class="badge" id="badge"></span></a>
+    <div id="nav-sesion"></div>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap">
+    <h1 class="page-title">Centro de ayuda</h1>
+    <p class="page-sub">Encuentra respuestas a tus preguntas o reporta un problema.</p>
+
+    <div class="ayuda-tabs">
+      <button class="ayuda-tab active" onclick="showTab('faq', this)"> Preguntas frecuentes</button>
+      <button class="ayuda-tab" onclick="showTab('reporte', this)"> Reportar un error</button>
+    </div>
+
+    <!-- FAQ -->
+    <div class="ayuda-panel show" id="tab-faq">
+      <div id="faq-list"></div>
+
+      <div class="volver-section">
+        <p>¿No encontraste lo que buscabas?</p>
+        <div class="volver-btns">
+          <a href="contacto.html" class="btn-volver btn-volver-primary">Contáctanos</a>
+          <a href="index.html" class="btn-volver btn-volver-outline">Ir al inicio</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTE -->
+    <div class="ayuda-panel" id="tab-reporte">
+      <div id="form-reporte-wrap">
+        <div class="form-group">
+          <label>Tipo de error</label>
+          <select id="tipo-error">
+            <option value="">Selecciona el tipo de problema</option>
+            <option>Error al cargar el catálogo</option>
+            <option>Problema con el carrito</option>
+            <option>Error en el proceso de pago</option>
+            <option>Problema con mi cuenta</option>
+            <option>Producto mal clasificado</option>
+            <option>Página no carga correctamente</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Página donde ocurrió</label>
+          <select id="pagina-error">
+            <option value="">Selecciona la página</option>
+            <option>Inicio</option>
+            <option>Catálogo</option>
+            <option>Carrito</option>
+            <option>Pago</option>
+            <option>Login / Registro</option>
+            <option>Otra</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Correo de contacto (opcional)</label>
+          <input type="email" id="correo-reporte" placeholder="para enviarte respuesta">
+        </div>
+        <div class="form-group">
+          <label>Describe el problema</label>
+          <textarea id="descripcion-error" placeholder="Cuéntanos qué pasó, qué intentabas hacer y qué mensaje de error viste..."></textarea>
+        </div>
+        <button class="btn-enviar" onclick="enviarReporte()">Enviar reporte</button>
+      </div>
+
+      <div class="reporte-exito" id="reporte-exito">
+        <span>📬</span>
+        <h3>¡Reporte enviado!</h3>
+        <p>Gracias por ayudarnos a mejorar FilterPro.</p>
+        <p>Revisaremos tu reporte a la brevedad posible.</p>
+      </div>
+
+      <div class="volver-section">
+        <p>¿Prefieres hablar con nosotros directamente?</p>
+        <div class="volver-btns">
+          <a href="contacto.html" class="btn-volver btn-volver-primary">Ir a contacto</a>
+          <a href="index.html" class="btn-volver btn-volver-outline">Página principal</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand"><a href="index.html" class="logo">Filter<span>Pro</span></a><p class="footer-desc">Venta en línea de filtros vehiculares para autos y motos.</p></div>
+    <div class="footer-col"><h4>Navegación</h4><ul><li><a href="index.html">Inicio</a></li><li><a href="catalogo.html">Catálogo</a></li><li><a href="contacto.html">Contacto</a></li></ul></div>
+    <div class="footer-col"><h4>Cuenta</h4><ul><li><a href="login.html">Ingresar</a></li><li><a href="registro.html">Registrar</a></li><li><a href="carrito.html">Carrito</a></li></ul></div>
+  </div>
+  <div class="footer-bottom"><span class="footer-copy">© 2025 FilterPro — Proyecto universitario</span><span class="footer-copy">Filtros para autos y motocicletas</span></div>
+</footer>
+
+<script>
+document.getElementById('badge').textContent = parseInt(localStorage.getItem('carrito') || '0');
+
+const faqs = [
+  ['¿Cómo encuentro el filtro correcto para mi vehículo?', 'Usa el selector en la página de catálogo. Selecciona el tipo de vehículo (auto o moto), la marca, el modelo y el tipo de filtro que necesitas. El sistema te mostrará todos los filtros compatibles disponibles.'],
+  ['¿Puedo comprar sin registrarme?', 'Puedes consultar el catálogo y ver los precios sin estar registrado. Sin embargo, para agregar productos al carrito y completar una compra necesitas tener una cuenta activa en FilterPro.'],
+  ['¿Cómo agrego productos al carrito?', 'Desde la página de catálogo, selecciona tu vehículo, encuentra el filtro compatible y haz clic en el botón "Carrito" de la tarjeta del producto. Verás el contador del carrito actualizarse en el menú superior.'],
+  ['¿Qué métodos de pago aceptan?', 'Aceptamos tarjeta de crédito (Visa, Mastercard, Amex), tarjeta débito y transferencia bancaria mediante PSE o Bancolombia.'],
+  ['¿Puedo modificar o cancelar mi pedido?', 'Puedes modificar las cantidades o eliminar productos mientras el pedido no haya sido procesado. Para cancelaciones después del pago, contáctanos a través de la página de contacto.'],
+  ['¿Cuánto demora el envío?', 'Los envíos dentro de la ciudad tienen un tiempo estimado de 1 a 2 días hábiles. Para otros municipios el tiempo es de 2 a 5 días hábiles según la zona.'],
+  ['¿Cómo sé si el filtro es compatible con mi vehículo?', 'El sistema filtra automáticamente por compatibilidad cuando seleccionas tu marca y modelo. Todos los productos mostrados son compatibles con tu vehículo seleccionado.'],
+];
+
+document.getElementById('faq-list').innerHTML = faqs.map(([p, r], i) => `
+  <div class="faq-item">
+    <button class="faq-pregunta" onclick="toggleFaq(${i})">
+      ${p}
+      <span class="faq-icono" id="icono-${i}">+</span>
+    </button>
+    <div class="faq-respuesta" id="resp-${i}">${r}</div>
+  </div>`).join('');
+
+function showTab(tab, btn) {
+  document.querySelectorAll('.ayuda-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.ayuda-panel').forEach(p => p.classList.remove('show'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('show');
+}
+
+function toggleFaq(i) {
+  const resp = document.getElementById('resp-' + i);
+  const icono = document.getElementById('icono-' + i);
+  const abierto = resp.classList.contains('show');
+  document.querySelectorAll('.faq-respuesta').forEach(r => r.classList.remove('show'));
+  document.querySelectorAll('.faq-icono').forEach(ic => ic.classList.remove('abierto'));
+  if (!abierto) {
+    resp.classList.add('show');
+    icono.classList.add('abierto');
+  }
+}
+
+function enviarReporte() {
+  const tipo = document.getElementById('tipo-error').value;
+  const desc = document.getElementById('descripcion-error').value.trim();
+  if (!tipo || !desc) {
+    alert('Por favor selecciona el tipo de error y describe el problema.');
+    return;
+  }
+  document.getElementById('form-reporte-wrap').style.display = 'none';
+  document.getElementById('reporte-exito').style.display = 'block';
+}
+
+const badge = document.getElementById('badge');
+if (badge) badge.textContent = parseInt(localStorage.getItem('carrito') || '0');(localStorage.getItem('carrito') || '0');
+
+  function renderNavSesion() {
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+  const el = document.getElementById('nav-sesion');
+  if (usuario) {
+    el.innerHTML = `
+      <span style="font-size:1.6rem;color:#ffffff;">Hola, ${usuario.nombre.split(' ')[0]}</span>
+      <button onclick="cerrarSesion()" style="background:transparent;border:1px solid rgba(255,255,255,0.22);color:#f5f4f0;font-family:'Comic Sans MS';font-size:1.4rem;padding:0.8rem 2rem;border-radius:4px;cursor:pointer; transform: translateX(20px);">
+        Cerrar sesión
+      </button>`;
+  } else {
+    el.innerHTML = `<a href="login.html" class="btn-ingresar">Ingresar</a>`;
+  }
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('sesionActiva');
+  localStorage.removeItem('usuario');
+  window.location.href = 'login.html';
+}
+
+document.addEventListener('DOMContentLoaded', renderNavSesion);
+</script>
+</body>
+</html>

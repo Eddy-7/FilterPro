@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FilterPro</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 62.5%; }
+  body { font-family: 'Segoe UI', sans-serif; font-size: 1.5rem; background: #0d0d0d; color: #f5f4f0; min-height: 100vh; display: flex; flex-direction: column; }
+ 
+  /* NAV */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.4rem 3%; background: #111; border-bottom: 1px solid rgba(255,255,255,0.08); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+  .logo { font-size: 1.8rem; font-weight: 700; color: #f5f4f0; text-decoration: none; }
+  .logo span { color: #e85c2b; }
+  .nav-badge { background: #e85c2b; color: white; font-size: 1.1rem; padding: 0.3rem 0.9rem; border-radius: 3px; margin-left: 1rem; }
+  .btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); font-size: 1.3rem; padding: 0.7rem 1.6rem; border-radius: 4px; cursor: pointer; }
+  .btn-logout:hover { border-color: #e85c2b; color: #e85c2b; }
+ 
+  /* LAYOUT */
+  .admin-wrap { display: flex; padding-top: 5.6rem; min-height: 100vh; }
+ 
+  /* SIDEBAR */
+  aside { width: 20rem; background: #111; border-right: 1px solid rgba(255,255,255,0.07); position: fixed; top: 5.6rem; bottom: 0; overflow-y: auto; }
+  .side-item { display: flex; align-items: center; gap: 1rem; padding: 1.4rem 2rem; color: rgba(255,255,255,0.5); cursor: pointer; border-left: 3px solid transparent; font-size: 1.4rem; transition: all 0.2s; }
+  .side-item:hover { background: rgba(255,255,255,0.04); color: #f5f4f0; }
+  .side-item.active { background: rgba(232,92,43,0.1); color: #e85c2b; border-left-color: #e85c2b; }
+  .side-icon { font-size: 1.6rem; width: 2rem; text-align: center; }
+ 
+  /* CONTENIDO */
+  main { margin-left: 20rem; flex: 1; padding: 3rem; }
+  .section { display: none; }
+  .section.show { display: block; }
+  .section-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.6rem; }
+  .section-sub { font-size: 1.3rem; color: rgba(255,255,255,0.4); margin-bottom: 2.4rem; }
+ 
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6rem; margin-bottom: 3rem; }
+  .stat-card { background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 2rem; }
+  .stat-num { font-size: 3rem; font-weight: 700; color: #e85c2b; display: block; }
+  .stat-label { font-size: 1.2rem; color: rgba(255,255,255,0.4); margin-top: 0.4rem; display: block; }
+ 
+  /* TABLA */
+  .tabla-wrap { background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; }
+  .tabla-header { display: flex; align-items: center; justify-content: space-between; padding: 1.6rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .tabla-header h3 { font-size: 1.5rem; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: rgba(255,255,255,0.04); padding: 1.1rem 1.6rem; text-align: left; font-size: 1.2rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; }
+  td { padding: 1.2rem 1.6rem; font-size: 1.35rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+ 
+  /* BADGES */
+  .badge { display: inline-block; padding: 0.3rem 0.9rem; border-radius: 3px; font-size: 1.1rem; font-weight: 600; }
+  .badge-green { background: rgba(45,106,79,0.3); color: #52b788; }
+  .badge-red { background: rgba(192,57,43,0.2); color: #e74c3c; }
+  .badge-yellow { background: rgba(243,156,18,0.2); color: #f39c12; }
+  .badge-blue { background: rgba(52,152,219,0.2); color: #3498db; }
+  .badge-gray { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
+ 
+  /* BOTONES */
+  .btn { padding: 0.6rem 1.2rem; border-radius: 4px; border: none; cursor: pointer; font-size: 1.2rem; font-weight: 600; transition: all 0.2s; }
+  .btn-primary { background: #e85c2b; color: white; }
+  .btn-primary:hover { background: #cf4e23; }
+  .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+  .btn-outline:hover { border-color: #e85c2b; color: #e85c2b; }
+  .btn-danger { background: transparent; border: 1px solid rgba(192,57,43,0.4); color: #e74c3c; }
+  .btn-danger:hover { background: rgba(192,57,43,0.15); }
+  .btn-sm { padding: 0.4rem 0.9rem; font-size: 1.1rem; }
+  .btn-gap { display: flex; gap: 0.6rem; }
+ 
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 2.8rem; width: 100%; max-width: 48rem; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 1.8rem; font-weight: 700; margin-bottom: 2rem; }
+  .modal-footer { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }
+ 
+  /* FORM */
+  .form-group { margin-bottom: 1.6rem; }
+  .form-group label { display: block; font-size: 1.2rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.6rem; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+    color: #f5f4f0; font-size: 1.4rem; padding: 1rem 1.2rem; border-radius: 4px; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #e85c2b; }
+  .form-group select option { background: #1a1a1a; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+ 
+  /* BÚSQUEDA */
+  .search-bar { display: flex; gap: 1rem; margin-bottom: 1.6rem; }
+  .search-bar input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #f5f4f0; font-size: 1.4rem; padding: 1rem 1.4rem; border-radius: 4px; outline: none; }
+  .search-bar input:focus { border-color: #e85c2b; }
+ 
+  /* LOADING / EMPTY */
+  .empty { text-align: center; padding: 4rem; color: rgba(255,255,255,0.25); font-size: 1.4rem; }
+ 
+  /* ESTADO PEDIDO SELECT */
+  .estado-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #f5f4f0; font-size: 1.2rem; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; }
+ 
+  @media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr 1fr; } aside { display: none; } main { margin-left: 0; } }
+</style>
+</head>
+<body>
+ 
+<nav>
+  <div style="display:flex;align-items:center;">
+    <a href="index.html" class="logo">Filter<span>Pro</span></a>
+    <span class="nav-badge">Admin</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:1.6rem;">
+    <span id="nav-nombre" style="font-size:1.3rem;color:rgba(255,255,255,0.5);"></span>
+    <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</nav>
+ 
+<div class="admin-wrap">
+  <aside>
+    <div class="side-item active" onclick="mostrarSeccion('dashboard')"> Dashboard
+    </div>
+    <div class="side-item" onclick="mostrarSeccion('productos')"> Productos
+    </div>
+    <div class="side-item" onclick="mostrarSeccion('pedidos')"> Pedidos
+    </div>
+    <div class="side-item" onclick="mostrarSeccion('usuarios')"> Usuarios
+    </div>
+    <div class="side-item" onclick="mostrarSeccion('proveedores')"> Proveedores
+    </div>
+    <div class="side-item" onclick="mostrarSeccion('inventario')"> Inventario
+    </div>
+    <div class="side-item" onclick="mostrarSeccion('reportes')"> Reportes
+    </div>
+    <div class="side-item" onclick="mostrarSeccion('alertas')"> Alertas de stock
+     </div>
+     <div class="side-item" onclick="mostrarSeccion('notificaciones')"> Mensajes
+     </div>
+  </aside>
+ 
+  <main>
+
+<div class="section" id="sec-notificaciones">
+  <h2 class="section-title">Mensajes de contacto</h2>
+  <p class="section-sub">Mensajes enviados desde el formulario de contacto</p>
+  <div class="tabla-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mensaje</th>
+          <th>Fecha</th>
+          <th>Leído</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-notificaciones">
+        <tr><td colspan="3" class="empty">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+ 
+    <!-- DASHBOARD -->
+    <div class="section show" id="sec-dashboard">
+      <h2 class="section-title">Dashboard</h2>
+      <p class="section-sub">Resumen general del sistema</p>
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-num" id="stat-productos">—</span><span class="stat-label">Productos activos</span></div>
+        <div class="stat-card"><span class="stat-num" id="stat-pedidos">—</span><span class="stat-label">Pedidos totales</span></div>
+        <div class="stat-card"><span class="stat-num" id="stat-usuarios">—</span><span class="stat-label">Usuarios registrados</span></div>
+        <div class="stat-card"><span class="stat-num" id="stat-proveedores">—</span><span class="stat-label">Proveedores</span></div>
+      </div>
+      <div class="tabla-wrap">
+        <div class="tabla-header"><h3>Últimos pedidos</h3></div>
+        <table>
+          <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Método</th><th>Estado</th><th>Fecha</th></tr></thead>
+          <tbody id="dash-pedidos"><tr><td colspan="6" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- PRODUCTOS -->
+    <div class="section" id="sec-productos">
+      <h2 class="section-title">Productos</h2>
+      <p class="section-sub">Gestión del catálogo de filtros</p>
+      <div class="search-bar">
+        <input type="text" id="buscar-producto" placeholder="Buscar producto..." oninput="filtrarProductos()">
+        <button class="btn btn-primary" onclick="abrirModalProducto()">+ Nuevo producto</button>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Nombre</th><th>Tipo filtro</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tabla-productos"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- PEDIDOS -->
+    <div class="section" id="sec-pedidos">
+      <h2 class="section-title">Pedidos</h2>
+      <p class="section-sub">Gestión y seguimiento de órdenes</p>
+      <div class="search-bar">
+        <input type="text" id="buscar-pedido" placeholder="Buscar por # pedido o cliente..." oninput="filtrarPedidos()">
+        <select id="filtro-estado-pedido" onchange="filtrarPedidos()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#E85C2B;font-size:1.4rem;padding:1rem 1.2rem;border-radius:4px;">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="en preparacion">En preparación</option>
+          <option value="despachado">Despachado</option>
+          <option value="entregado">Entregado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Método pago</th><th>Dirección</th><th>Estado</th><th>Fecha</th></tr></thead>
+          <tbody id="tabla-pedidos"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- USUARIOS -->
+    <div class="section" id="sec-usuarios">
+      <h2 class="section-title">Usuarios</h2>
+      <p class="section-sub">Gestión de clientes y administradores</p>
+      <div class="search-bar">
+        <input type="text" id="buscar-usuario" placeholder="Buscar por nombre o correo..." oninput="filtrarUsuarios()">
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Nombre</th><th>Correo</th><th>Tipo</th><th>Estado</th><th>Fecha registro</th><th>Acciones</th></tr></thead>
+          <tbody id="tabla-usuarios"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- PROVEEDORES -->
+    <div class="section" id="sec-proveedores">
+      <h2 class="section-title">Proveedores</h2>
+      <p class="section-sub">Gestión de proveedores de filtros</p>
+      <div class="search-bar">
+        <input type="text" id="buscar-proveedor" placeholder="Buscar proveedor..." oninput="filtrarProveedores()">
+        <button class="btn btn-primary" onclick="abrirModalProveedor()">+ Nuevo proveedor</button>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Nombre</th><th>Contacto</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tabla-proveedores"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- INVENTARIO -->
+    <div class="section" id="sec-inventario">
+      <h2 class="section-title">Inventario</h2>
+      <p class="section-sub">Stock actual de productos</p>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Producto</th><th>Stock</th><th>Estado stock</th></tr></thead>
+          <tbody id="tabla-inventario"><tr><td colspan="4" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-alertas">
+  <h2 class="section-title">Alertas de stock</h2>
+  <p class="section-sub">Clientes que esperan disponibilidad de productos</p>
+  <div class="tabla-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Correo</th>
+          <th>Producto</th>
+          <th>Stock actual</th>
+          <th>Fecha solicitud</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-alertas">
+        <tr><td colspan="6" class="empty">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+ 
+    <!-- REPORTES -->
+    <div class="section" id="sec-reportes">
+      <h2 class="section-title">Reportes</h2>
+      <p class="section-sub">Resumen de ventas e inventario</p>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card"><span class="stat-num" id="rep-ventas-total">—</span><span class="stat-label">Total vendido ($)</span></div>
+        <div class="stat-card"><span class="stat-num" id="rep-pedidos-entregados">—</span><span class="stat-label">Pedidos entregados</span></div>
+        <div class="stat-card"><span class="stat-num" id="rep-pedidos-pendientes">—</span><span class="stat-label">Pedidos pendientes</span></div>
+      </div>
+      <div class="tabla-wrap" style="margin-top:2rem;">
+        <div class="tabla-header"><h3>Productos más vendidos</h3></div>
+        <table>
+          <thead><tr><th>Producto</th><th>Unidades vendidas</th><th>Ingresos ($)</th></tr></thead>
+          <tbody id="rep-productos"><tr><td colspan="3" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="tabla-wrap" style="margin-top:2rem;">
+        <div class="tabla-header"><h3>Ventas por método de pago</h3></div>
+        <table>
+          <thead><tr><th>Método</th><th>Cantidad de pedidos</th><th>Total ($)</span></th></tr></thead>
+          <tbody id="rep-metodos"><tr><td colspan="3" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+ 
+  </main>
+</div>
+ 
+<!-- MODAL PRODUCTO -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal">
+    <h3 id="modal-prod-titulo">Nuevo producto</h3>
+    <div class="form-group"><label>Nombre</label><input type="text" id="prod-nombre" placeholder="Nombre del producto"></div>
+    <div class="form-group"><label>Descripción</label><input type="text" id="prod-desc" placeholder="Descripción breve"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Precio ($)</label><input type="number" id="prod-precio" placeholder="0"></div>
+      <div class="form-group"><label>Stock</label><input type="number" id="prod-stock" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo de filtro</label>
+        <select id="prod-tipo-filtro">
+          <option value="1">Aire</option>
+          <option value="2">Aceite</option>
+          <option value="3">Combustible</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tipo de vehículo</label>
+        <select id="prod-tipo-vehiculo">
+          <option value="1">Automóvil</option>
+          <option value="2">Motocicleta</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Estado</label>
+      <select id="prod-estado">
+        <option value="activo">Activo</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+    <input type="hidden" id="prod-id">
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cerrarModal('modal-producto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- MODAL PROVEEDOR -->
+<div class="modal-overlay" id="modal-proveedor">
+  <div class="modal">
+    <h3 id="modal-prov-titulo">Nuevo proveedor</h3>
+    <div class="form-group"><label>Nombre empresa</label><input type="text" id="prov-nombre" placeholder="Nombre del proveedor"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Contacto</label><input type="text" id="prov-contacto" placeholder="Nombre del contacto"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" id="prov-tel" placeholder="3001234567"></div>
+    </div>
+    <div class="form-group"><label>Correo</label><input type="email" id="prov-correo" placeholder="correo@empresa.com"></div>
+    <div class="form-group"><label>Dirección</label><input type="text" id="prov-dir" placeholder="Dirección"></div>
+    <div class="form-group">
+      <label>Estado</label>
+      <select id="prov-estado">
+        <option value="activo">Activo</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+    <input type="hidden" id="prov-id">
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cerrarModal('modal-proveedor')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarProveedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+ 
+<script>
+const API = 'http://localhost:3000';
+let token = localStorage.getItem('token');
+let usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+ 
+// Datos en memoria
+let todosProductos = [], todosPedidos = [], todosUsuarios = [], todosProveedores = [];
+ 
+// Verificar acceso admin
+if (!token || !usuario || usuario.tipo !== 'admin') {
+  alert('Acceso denegado. Solo administradores.');
+  window.location.href = 'login.html';
+}
+document.getElementById('nav-nombre').textContent = usuario?.nombre || '';
+ 
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('sesionActiva');
+  window.location.href = 'login.html';
+}
+ 
+// Navegación
+function mostrarSeccion(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('show'));
+  document.querySelectorAll('.side-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('show');
+  event.currentTarget.classList.add('active');
+ 
+  if (id === 'productos') cargarProductos();
+  else if (id === 'pedidos') cargarPedidos();
+  else if (id === 'usuarios') cargarUsuarios();
+  else if (id === 'proveedores') cargarProveedores();
+  else if (id === 'inventario') cargarInventario();
+  else if (id === 'reportes') cargarReportes();
+  else if (id === 'alertas') cargarAlertas();
+  else if (id === 'notificaciones') cargarNotificaciones();
+}
+ 
+const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+ 
+function fmt(n) { return '$' + Number(n).toLocaleString('es-CO'); }
+function fmtFecha(f) { return f ? new Date(f).toLocaleDateString('es-CO') : '—'; }
+ 
+function badgeEstado(e) {
+  const map = {
+    activo: 'badge-green', inactivo: 'badge-red', pendiente: 'badge-yellow',
+    'en preparacion': 'badge-blue', despachado: 'badge-blue', entregado: 'badge-green', cancelado: 'badge-red',
+    cliente: 'badge-gray', admin: 'badge-yellow', completado: 'badge-green'
+  };
+  return `<span class="badge ${map[e] || 'badge-gray'}">${e || '—'}</span>`;
+}
+ 
+// ===================== DASHBOARD =====================
+async function cargarDashboard() {
+  try {
+    const [prods, peds, usrs, provs] = await Promise.all([
+      fetch(`${API}/api/productos`, { headers: headers() }).then(r => r.json()),
+      fetch(`${API}/api/pedidos`, { headers: headers() }).then(r => r.json()),
+      fetch(`${API}/api/usuarios`, { headers: headers() }).then(r => r.json()),
+      fetch(`${API}/api/proveedores`, { headers: headers() }).then(r => r.json()),
+    ]);
+    document.getElementById('stat-productos').textContent = prods.filter(p => p.est_producto === 'activo').length;
+    document.getElementById('stat-pedidos').textContent = peds.length;
+    document.getElementById('stat-usuarios').textContent = usrs.length;
+    document.getElementById('stat-proveedores').textContent = provs.length;
+ 
+    const ultimos = peds.slice(0, 8);
+    document.getElementById('dash-pedidos').innerHTML = ultimos.length ? ultimos.map(p => `
+      <tr>
+        <td>#${p.id_pedido}</td>
+        <td>${p.nom_usu1 || '—'} ${p.ape_usu1 || ''}</td>
+        <td>${fmt(p.total_pedido)}</td>
+        <td>${p.metodo_pago || '—'}</td>
+        <td>${badgeEstado(p.estado_pedido)}</td>
+        <td>${fmtFecha(p.fecha_pedido)}</td>
+      </tr>`).join('') : '<tr><td colspan="6" class="empty">Sin pedidos</td></tr>';
+  } catch(e) { console.error(e); }
+}
+
+async function cargarNotificaciones() {
+  const tbody = document.getElementById('tabla-notificaciones');
+  try {
+    const data = await fetch(`${API}/api/contacto`, { headers: headers() }).then(r => r.json());
+    tbody.innerHTML = data.length ? data.map(n => `
+      <tr>
+        <td>${n.mensaje_notificacion}</td>
+        <td>${new Date(n.fecha_envio).toLocaleDateString('es-CO')}</td>
+        <td><span class="badge ${n.leida ? 'badge-green' : 'badge-gray'}">${n.leida ? 'Leído' : 'Nuevo'}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" class="empty">Sin mensajes</td></tr>';
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="3" class="empty">Error al cargar</td></tr>';
+  }
+}
+ 
+// ===================== PRODUCTOS =====================
+async function cargarProductos() {
+  const tbody = document.getElementById('tabla-productos');
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">Cargando...</td></tr>';
+  try {
+    const data = await fetch(`${API}/api/productos`, { headers: headers() }).then(r => r.json());
+    todosProductos = data;
+    renderProductos(data);
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Error al cargar</td></tr>'; }
+}
+ 
+function renderProductos(lista) {
+  const tbody = document.getElementById('tabla-productos');
+  tbody.innerHTML = lista.length ? lista.map(p => `
+    <tr>
+      <td>${p.id_producto}</td>
+      <td><strong>${p.nom_producto}</strong></td>
+      <td>${p.nom_filtro || '—'}</td>
+      <td>${fmt(p.pre_producto)}</td>
+      <td>${p.stock_producto}</td>
+      <td>${badgeEstado(p.est_producto)}</td>
+      <td>
+        <div class="btn-gap">
+          <button class="btn btn-outline btn-sm" onclick="editarProducto(${p.id_producto})">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${p.id_producto})">Eliminar</button>
+        </div>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" class="empty">Sin productos</td></tr>';
+}
+ 
+function filtrarProductos() {
+  const q = document.getElementById('buscar-producto').value.toLowerCase();
+  renderProductos(todosProductos.filter(p => p.nom_producto.toLowerCase().includes(q)));
+}
+ 
+function abrirModalProducto() {
+  document.getElementById('prod-id').value = '';
+  document.getElementById('prod-nombre').value = '';
+  document.getElementById('prod-desc').value = '';
+  document.getElementById('prod-precio').value = '';
+  document.getElementById('prod-stock').value = '';
+  document.getElementById('prod-estado').value = 'activo';
+  document.getElementById('modal-prod-titulo').textContent = 'Nuevo producto';
+  document.getElementById('modal-producto').classList.add('show');
+}
+ 
+function editarProducto(id) {
+  const p = todosProductos.find(x => x.id_producto === id);
+  if (!p) return;
+  document.getElementById('prod-id').value = p.id_producto;
+  document.getElementById('prod-nombre').value = p.nom_producto;
+  document.getElementById('prod-desc').value = p.des_producto;
+  document.getElementById('prod-precio').value = p.pre_producto;
+  document.getElementById('prod-stock').value = p.stock_producto;
+  document.getElementById('prod-tipo-filtro').value = p.id_tipo_filtro;
+  document.getElementById('prod-tipo-vehiculo').value = p.id_tipo_vehiculo;
+  document.getElementById('prod-estado').value = p.est_producto;
+  document.getElementById('modal-prod-titulo').textContent = 'Editar producto';
+  document.getElementById('modal-producto').classList.add('show');
+}
+ 
+async function guardarProducto() {
+  const id = document.getElementById('prod-id').value;
+  const body = {
+    nom_producto: document.getElementById('prod-nombre').value.trim(),
+    des_producto: document.getElementById('prod-desc').value.trim(),
+    pre_producto: parseFloat(document.getElementById('prod-precio').value),
+    stock_producto: parseInt(document.getElementById('prod-stock').value),
+    id_tipo_filtro: parseInt(document.getElementById('prod-tipo-filtro').value),
+    id_tipo_vehiculo: parseInt(document.getElementById('prod-tipo-vehiculo').value),
+    est_producto: document.getElementById('prod-estado').value,
+  };
+  if (!body.nom_producto || isNaN(body.pre_producto)) { alert('Completa nombre y precio.'); return; }
+  try {
+    const url = id ? `${API}/api/productos/${id}` : `${API}/api/productos`;
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
+    if (!res.ok) throw new Error((await res.json()).error);
+    cerrarModal('modal-producto');
+    cargarProductos();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+ 
+async function eliminarProducto(id) {
+  if (!confirm('¿Eliminar este producto?')) return;
+  try {
+    await fetch(`${API}/api/productos/${id}`, { method: 'DELETE', headers: headers() });
+    cargarProductos();
+  } catch(e) { alert('Error al eliminar'); }
+}
+ 
+// ===================== PEDIDOS =====================
+async function cargarPedidos() {
+  const tbody = document.getElementById('tabla-pedidos');
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">Cargando...</td></tr>';
+  try {
+    const data = await fetch(`${API}/api/pedidos`, { headers: headers() }).then(r => r.json());
+    todosPedidos = data;
+    renderPedidos(data);
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Error al cargar</td></tr>'; }
+}
+ 
+function renderPedidos(lista) {
+  const tbody = document.getElementById('tabla-pedidos');
+  tbody.innerHTML = lista.length ? lista.map(p => `
+    <tr>
+      <td>#${p.id_pedido}</td>
+      <td>${p.nom_usu1 || '—'} ${p.ape_usu1 || ''}</td>
+      <td>${fmt(p.total_pedido)}</td>
+      <td>${p.metodo_pago || '—'}</td>
+      <td>${p.dir_envio || '—'}</td>
+      <td>
+        <select class="estado-select" onchange="cambiarEstadoPedido(${p.id_pedido}, this.value)">
+          ${['pendiente','en preparacion','despachado','entregado','cancelado'].map(e =>
+            `<option value="${e}" ${p.estado_pedido === e ? 'selected' : ''}>${e}</option>`
+          ).join('')}
+        </select>
+      </td>
+      <td>${fmtFecha(p.fecha_pedido)}</td>
+    </tr>`).join('') : '<tr><td colspan="7" class="empty">Sin pedidos</td></tr>';
+}
+ 
+function filtrarPedidos() {
+  const q = document.getElementById('buscar-pedido').value.toLowerCase();
+  const estado = document.getElementById('filtro-estado-pedido').value;
+  renderPedidos(todosPedidos.filter(p => {
+    const nombre = `${p.nom_usu1 || ''} ${p.ape_usu1 || ''} ${p.id_pedido}`.toLowerCase();
+    return nombre.includes(q) && (!estado || p.estado_pedido === estado);
+  }));
+}
+ 
+async function cambiarEstadoPedido(id, estado) {
+  try {
+    await fetch(`${API}/api/pedidos/${id}/estado`, {
+      method: 'PUT', headers: headers(), body: JSON.stringify({ estado_pedido: estado })
+    });
+  } catch(e) { alert('Error al actualizar estado'); }
+}
+ 
+// ===================== USUARIOS =====================
+async function cargarUsuarios() {
+  const tbody = document.getElementById('tabla-usuarios');
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">Cargando...</td></tr>';
+  try {
+    const data = await fetch(`${API}/api/usuarios`, { headers: headers() }).then(r => r.json());
+    todosUsuarios = data;
+    renderUsuarios(data);
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Error al cargar</td></tr>'; }
+}
+ 
+function renderUsuarios(lista) {
+  const tbody = document.getElementById('tabla-usuarios');
+  tbody.innerHTML = lista.length ? lista.map(u => `
+    <tr>
+      <td>${u.id_usuario}</td>
+      <td>${u.nom_usu1 || ''} ${u.ape_usu1 || ''}</td>
+      <td>${u.correo_usu}</td>
+      <td>${badgeEstado(u.tipo_usu)}</td>
+      <td>${badgeEstado(u.estado_usu || 'activo')}</td>
+      <td>${fmtFecha(u.fecha_usu)}</td>
+      <td>
+        <div class="btn-gap">
+          <button class="btn btn-outline btn-sm" onclick="toggleEstadoUsuario(${u.id_usuario}, '${u.estado_usu || 'activo'}')">
+            ${u.estado_usu === 'inactivo' ? 'Activar' : 'Desactivar'}
+          </button>
+        </div>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" class="empty">Sin usuarios</td></tr>';
+}
+ 
+function filtrarUsuarios() {
+  const q = document.getElementById('buscar-usuario').value.toLowerCase();
+  renderUsuarios(todosUsuarios.filter(u =>
+    `${u.nom_usu1} ${u.ape_usu1} ${u.correo_usu}`.toLowerCase().includes(q)
+  ));
+}
+ 
+async function toggleEstadoUsuario(id, estadoActual) {
+  const nuevo = estadoActual === 'inactivo' ? 'activo' : 'inactivo';
+  const accion = nuevo === 'inactivo' ? 'desactivar' : 'activar';
+  if (!confirm(`¿Seguro que deseas ${accion} este usuario?`)) return;
+  try {
+    const res = await fetch(`${API}/api/usuarios/${id}/estado`, {
+      method: 'PUT',
+      headers: headers(),
+      body: JSON.stringify({ estado_usu: nuevo })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      alert('Error: ' + (err.error || 'No se pudo actualizar'));
+      return;
+    }
+    const idx = todosUsuarios.findIndex(x => x.id_usuario === id);
+    todosUsuarios[idx].estado_usu = nuevo;
+    renderUsuarios(todosUsuarios);
+  } catch(e) { alert('Error de conexión al actualizar'); }
+}
+ 
+// ===================== PROVEEDORES =====================
+async function cargarProveedores() {
+  const tbody = document.getElementById('tabla-proveedores');
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">Cargando...</td></tr>';
+  try {
+    const data = await fetch(`${API}/api/proveedores`, { headers: headers() }).then(r => r.json());
+    todosProveedores = data;
+    renderProveedores(data);
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Error al cargar</td></tr>'; }
+}
+ 
+function renderProveedores(lista) {
+  const tbody = document.getElementById('tabla-proveedores');
+  tbody.innerHTML = lista.length ? lista.map(p => `
+    <tr>
+      <td>${p.id_proveedor}</td>
+      <td><strong>${p.nom_proveedor}</strong></td>
+      <td>${p.cont_proveedor || '—'}</td>
+      <td>${p.tel_proveedor || '—'}</td>
+      <td>${p.cor_proveedor || '—'}</td>
+      <td>${badgeEstado(p.estado || 'activo')}</td>
+      <td>
+        <div class="btn-gap">
+          <button class="btn btn-outline btn-sm" onclick="editarProveedor(${p.id_proveedor})">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarProveedor(${p.id_proveedor})">Eliminar</button>
+        </div>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" class="empty">Sin proveedores</td></tr>';
+}
+ 
+function filtrarProveedores() {
+  const q = document.getElementById('buscar-proveedor').value.toLowerCase();
+  renderProveedores(todosProveedores.filter(p => p.nom_proveedor.toLowerCase().includes(q)));
+}
+ 
+function abrirModalProveedor() {
+  document.getElementById('prov-id').value = '';
+  document.getElementById('prov-nombre').value = '';
+  document.getElementById('prov-contacto').value = '';
+  document.getElementById('prov-tel').value = '';
+  document.getElementById('prov-correo').value = '';
+  document.getElementById('prov-dir').value = '';
+  document.getElementById('prov-estado').value = 'activo';
+  document.getElementById('modal-prov-titulo').textContent = 'Nuevo proveedor';
+  document.getElementById('modal-proveedor').classList.add('show');
+}
+ 
+function editarProveedor(id) {
+  const p = todosProveedores.find(x => x.id_proveedor === id);
+  if (!p) return;
+  document.getElementById('prov-id').value = p.id_proveedor;
+  document.getElementById('prov-nombre').value = p.nom_proveedor;
+  document.getElementById('prov-contacto').value = p.cont_proveedor;
+  document.getElementById('prov-tel').value = p.tel_proveedor;
+  document.getElementById('prov-correo').value = p.cor_proveedor;
+  document.getElementById('prov-dir').value = p.dir_proveedor;
+  document.getElementById('prov-estado').value = p.estado || 'activo';
+  document.getElementById('modal-prov-titulo').textContent = 'Editar proveedor';
+  document.getElementById('modal-proveedor').classList.add('show');
+}
+ 
+async function guardarProveedor() {
+  const id = document.getElementById('prov-id').value;
+  const body = {
+    nom_proveedor: document.getElementById('prov-nombre').value.trim(),
+    cont_proveedor: document.getElementById('prov-contacto').value.trim(),
+    tel_proveedor: document.getElementById('prov-tel').value.trim(),
+    cor_proveedor: document.getElementById('prov-correo').value.trim(),
+    dir_proveedor: document.getElementById('prov-dir').value.trim(),
+    estado: document.getElementById('prov-estado').value,
+  };
+  if (!body.nom_proveedor) { alert('El nombre es obligatorio.'); return; }
+  try {
+    const url = id ? `${API}/api/proveedores/${id}` : `${API}/api/proveedores`;
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
+    if (!res.ok) throw new Error((await res.json()).error);
+    cerrarModal('modal-proveedor');
+    cargarProveedores();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+ 
+async function eliminarProveedor(id) {
+  if (!confirm('¿Eliminar este proveedor?')) return;
+  try {
+    await fetch(`${API}/api/proveedores/${id}`, { method: 'DELETE', headers: headers() });
+    cargarProveedores();
+  } catch(e) { alert('Error al eliminar'); }
+}
+ 
+// ===================== INVENTARIO =====================
+async function cargarInventario() {
+  const tbody = document.getElementById('tabla-inventario');
+  tbody.innerHTML = '<tr><td colspan="4" class="empty">Cargando...</td></tr>';
+  try {
+    const data = await fetch(`${API}/api/productos`, { headers: headers() }).then(r => r.json());
+    tbody.innerHTML = data.length ? data.map(p => {
+      let estadoStock = 'badge-green', textoStock = 'Normal';
+      if (p.stock_producto === 0) { estadoStock = 'badge-red'; textoStock = 'Sin stock'; }
+      else if (p.stock_producto <= 5) { estadoStock = 'badge-yellow'; textoStock = 'Stock bajo'; }
+      return `<tr>
+        <td>${p.id_producto}</td>
+        <td>${p.nom_producto}</td>
+        <td>${p.stock_producto}</td>
+        <td><span class="badge ${estadoStock}">${textoStock}</span></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="4" class="empty">Sin datos</td></tr>';
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="empty">Error al cargar</td></tr>'; }
+}
+ 
+// ===================== REPORTES =====================
+async function cargarReportes() {
+  try {
+    const [peds, masVendidos] = await Promise.all([
+      fetch(`${API}/api/pedidos`, { headers: headers() }).then(r => r.json()),
+      fetch(`${API}/api/pedidos/reportes/mas-vendidos`, { headers: headers() }).then(r => r.json()),
+    ]);
+
+    const totalVentas = peds.reduce((a, p) => a + (p.total_pedido || 0), 0);
+    const entregados = peds.filter(p => p.estado_pedido === 'entregado').length;
+    const pendientes = peds.filter(p => p.estado_pedido === 'pendiente').length;
+
+    document.getElementById('rep-ventas-total').textContent = '$' + totalVentas.toLocaleString('es-CO');
+    document.getElementById('rep-pedidos-entregados').textContent = entregados;
+    document.getElementById('rep-pedidos-pendientes').textContent = pendientes;
+
+    // Ventas por método de pago
+    const porMetodo = {};
+    peds.forEach(p => {
+      const m = p.metodo_pago || 'otro';
+      if (!porMetodo[m]) porMetodo[m] = { count: 0, total: 0 };
+      porMetodo[m].count++;
+      porMetodo[m].total += p.total_pedido || 0;
+    });
+    document.getElementById('rep-metodos').innerHTML = Object.entries(porMetodo).length ?
+      Object.entries(porMetodo).map(([m, v]) =>
+        `<tr><td>${m}</td><td>${v.count}</td><td>${fmt(v.total)}</td></tr>`
+      ).join('') : '<tr><td colspan="3" class="empty">Sin datos</td></tr>';
+
+    // Productos más vendidos — datos reales desde detalle_pedido
+    document.getElementById('rep-productos').innerHTML = masVendidos.length ?
+      masVendidos.map(p => `<tr><td>${p.nom_producto}</td><td>${p.total_vendido} uds</td><td>${fmt(p.ingresos)}</td></tr>`).join('')
+      : '<tr><td colspan="3" class="empty">Sin ventas registradas aún</td></tr>';
+
+  } catch(e) { console.error(e); }
+}
+ 
+// ===================== MODALES =====================
+function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+ 
+
+async function cargarAlertas() {
+  const tbody = document.getElementById('tabla-alertas');
+  try {
+    const data = await fetch(`${API}/api/alertas`, { headers: headers() }).then(r => r.json());
+    tbody.innerHTML = data.length ? data.map(a => `
+      <tr>
+        <td>${a.nom_usu1}</td>
+        <td>${a.correo_usu}</td>
+        <td>${a.nom_producto}</td>
+        <td><span class="badge ${a.stock_producto === 0 ? 'badge-red' : 'badge-yellow'}">${a.stock_producto} uds</span></td>
+        <td>${new Date(a.fecha_solicitud).toLocaleDateString('es-CO')}</td>
+        <td><span class="badge ${a.notificado ? 'badge-green' : 'badge-gray'}">${a.notificado ? 'Notificado' : 'Pendiente'}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="empty">Sin alertas registradas</td></tr>';
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Error al cargar</td></tr>';
+  }
+}
+
+// Iniciar
+cargarDashboard();
+</script>
+</body>
+</html>

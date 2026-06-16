@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FilterPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 62.5%; }
+  body { font-family: 'DM Sans', sans-serif; font-size: 1.6rem; background: #0d0d0d; color: #f5f4f0; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* NAV */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.8rem 5%; background: #0d0d0d; border-bottom: 1px solid rgba(255,255,255,0.07); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+  .logo { font-family: 'Comic Sans MS'; font-weight: 800; font-size: 2.2rem; color: #f5f4f0; text-decoration: none; letter-spacing: -0.02em; }
+  .logo span { color: #e85c2b; }
+  .nav-links { display: flex; gap: 3.2rem; list-style: none; }
+  .nav-links a { font-size: 1.5rem; color: rgba(245,244,240,0.55); text-decoration: none; }
+  .nav-right { display: flex; align-items: center; gap: 1.2rem; }
+  .btn-nav { position: relative; background: transparent; border: 1px solid rgba(255,255,255,0.22); color: #f5f4f0; font-family: 'Comic Sans MS'; font-size: 1.4rem; padding: 0.8rem 1.4rem; border-radius: 4px; text-decoration: none; }
+  .btn-nav.active { background: rgba(232,92,43,0.15); border-color: #e85c2b; color: #e85c2b; }
+  .badge { visibility: hidden;}
+  .btn-ingresar { background: #f5f4f0; color: #0d0d0d; font-family: 'Comic Sans MS'; font-size: 1.0rem; font-weight: 500; padding: 0.8rem 2rem; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; }
+
+  /* MAIN */
+  main { padding-top: 10rem; flex: 1; }
+  .wrap { max-width: 96rem; margin: 0 auto; padding: 0 5% 6rem; }
+  .page-titulo { font-family: 'Comic Sans MS'; font-size: 3.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 3.2rem; }
+
+  /* FILTRO ESTADO */
+  .filtros-estado { display: flex; gap: 1rem; margin-bottom: 2.8rem; flex-wrap: wrap; }
+  .filtro-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: rgba(245,244,240,0.55); font-family: 'Comic Sans MS'; font-size: 1.3rem; padding: 0.6rem 1.4rem; border-radius: 4px; cursor: pointer; }
+  .filtro-btn.active { background: rgba(232,92,43,0.15); border-color: #e85c2b; color: #e85c2b; }
+
+  /* PEDIDOS */
+  .pedidos-lista { display: flex; flex-direction: column; gap: 1.6rem; }
+
+  .pedido-card { background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; }
+  .pedido-header { display: flex; align-items: center; justify-content: space-between; padding: 2rem 2.4rem; cursor: pointer; }
+  .pedido-header:hover { background: rgba(255,255,255,0.02); }
+  .pedido-left { display: flex; align-items: center; gap: 2rem; }
+  .pedido-id { font-family: 'Comic Sans MS'; font-size: 1.6rem; font-weight: 700; }
+  .pedido-fecha { font-size: 1.3rem; color: rgba(245,244,240,0.4); }
+  .pedido-right { display: flex; align-items: center; gap: 1.6rem; }
+  .pedido-total { font-family: 'Comic Sans MS'; font-size: 1.8rem; font-weight: 700; }
+  .pedido-chevron { font-size: 1.2rem; color: rgba(245,244,240,0.4); transition: transform 0.2s; }
+  .pedido-card.abierto .pedido-chevron { transform: rotate(180deg); }
+
+  /* BADGE ESTADO */
+  .estado-badge { font-size: 1.2rem; font-weight: 500; padding: 0.4rem 1rem; border-radius: 3px; text-transform: capitalize; }
+  .estado-pendiente   { background: rgba(234,179,8,0.15);  color: #eab308; }
+  .estado-preparacion { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .estado-despachado  { background: rgba(168,85,247,0.15); color: #a855f7; }
+  .estado-entregado   { background: rgba(34,197,94,0.15);  color: #22c55e; }
+  .estado-cancelado   { background: rgba(239,68,68,0.15);  color: #ef4444; }
+
+  /* DETALLE */
+  .pedido-detalle { display: none; padding: 0 2.4rem 2.4rem; border-top: 1px solid rgba(255,255,255,0.06); }
+  .pedido-card.abierto .pedido-detalle { display: block; }
+
+  .detalle-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.6rem; padding: 2rem 0; margin-bottom: 1.6rem; }
+  .info-campo label { font-size: 1.1rem; color: rgba(245,244,240,0.38); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.4rem; }
+  .info-campo span { font-size: 1.4rem; color: #f5f4f0; }
+
+  .detalle-productos { background: rgba(255,255,255,0.03); border-radius: 4px; overflow: hidden; margin-bottom: 1.6rem; }
+  .detalle-productos-titulo { font-family: 'Comic Sans MS'; font-size: 1.3rem; padding: 1.2rem 1.6rem; border-bottom: 1px solid rgba(255,255,255,0.06); color: rgba(245,244,240,0.55); }
+  .producto-row { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.6rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .producto-row:last-child { border-bottom: none; }
+  .prod-nombre-det { font-size: 1.4rem; color: #f5f4f0; }
+  .prod-qty-det { font-size: 1.3rem; color: rgba(245,244,240,0.4); }
+  .prod-precio-det { font-family: 'Comic Sans MS'; font-size: 1.4rem; font-weight: 700; }
+
+  /* ACCIONES */
+  .pedido-acciones { display: flex; justify-content: flex-end; gap: 1rem; }
+  .btn-cancelar { background: transparent; border: 1px solid rgba(239,68,68,0.4); color: #ef4444; font-family: 'Comic Sans MS'; font-size: 1.3rem; padding: 0.8rem 1.8rem; border-radius: 4px; cursor: pointer; }
+  .btn-cancelar:hover { background: rgba(239,68,68,0.1); }
+
+  /* VACÍO */
+  .pedidos-vacio { text-align: center; padding: 8rem 0; color: rgba(245,244,240,0.3); }
+  .pedidos-vacio p { font-size: 1.6rem; margin-bottom: 2rem; }
+
+  /* CARGANDO */
+  .cargando { text-align: center; padding: 6rem 0; color: rgba(245,244,240,0.3); font-size: 1.5rem; }
+
+  /* FOOTER */
+  footer { background: #0d0d0d; padding: 5.6rem 5% 3rem; margin-top: auto; }
+  .footer-grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr; gap: 4rem; padding-bottom: 4rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 2.8rem; }
+  .footer-brand .logo { display: inline-block; margin-bottom: 1.6rem; }
+  .footer-desc { font-size: 1.4rem; line-height: 1.75; color: rgba(245,244,240,0.38); max-width: 30rem; }
+  .footer-col h4 { font-family: 'Comic Sans MS'; font-size: 1.2rem; font-weight: 700; color: #f5f4f0; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.8rem; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 1.1rem; }
+  .footer-col ul a { font-size: 1.4rem; color: rgba(245,244,240,0.40); text-decoration: none; }
+  .footer-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .footer-copy { font-size: 1.3rem; color: rgba(245,244,240,0.22); }
+
+  @media (max-width: 800px) {
+    .nav-links { display: none; }
+    .detalle-info { grid-template-columns: 1fr 1fr; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .pedido-left { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Filter<span>Pro</span></a>
+  <ul class="nav-links">
+    <li><a href="ayuda.html">Ayuda</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="carrito.html" class="btn-nav">Carrito<span class="badge" id="badge">0</span></a>
+    <div id="nav-sesion"></div>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3.2rem;">
+    <h1 class="page-titulo" style="margin-bottom:0;">Mis pedidos</h1>
+    <button onclick="toggleNotificaciones()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#f5f4f0;font-family:'Comic Sans MS';font-size:1.3rem;padding:0.8rem 1.6rem;border-radius:4px;cursor:pointer;">
+       Notificaciones
+    </button>
+  </div>
+
+  <div id="panel-notificaciones" style="display:none;background:#161616;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:2rem;margin-bottom:2.8rem;">
+    <h3 style="font-family:'Comic Sans MS';font-size:1.6rem;margin-bottom:1.6rem;">Tus notificaciones</h3>
+    <div id="lista-notificaciones"><p style="color:rgba(245,244,240,0.4);">Cargando...</p></div>
+  </div>
+
+  <div class="filtros-estado">
+    <button class="filtro-btn active" onclick="filtrarEstado('')">Todos</button>
+    <button class="filtro-btn" onclick="filtrarEstado('pendiente')">Pendiente</button>
+    <button class="filtro-btn" onclick="filtrarEstado('en preparacion')">En preparación</button>
+    <button class="filtro-btn" onclick="filtrarEstado('despachado')">Despachado</button>
+    <button class="filtro-btn" onclick="filtrarEstado('entregado')">Entregado</button>
+    <button class="filtro-btn" onclick="filtrarEstado('cancelado')">Cancelado</button>
+  </div>
+
+  <div class="pedidos-lista" id="lista">
+    <div class="cargando">Cargando tus pedidos...</div>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="index.html" class="logo">Filter<span>Pro</span></a>
+      <p class="footer-desc">Venta en línea de filtros vehiculares para autos y motos.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navegación</h4>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Cuenta</h4>
+      <ul>
+        <li><a href="mis-pedidos.html">Mis pedidos</a></li>
+        <li><a href="carrito.html">Carrito</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 FilterPro - Proyecto universitario</span>
+    <span class="footer-copy">Filtros para autos y motocicletas</span>
+  </div>
+</footer>
+
+<script>
+const API = 'http://localhost:3000';
+let todosPedidos = [];
+let filtroActual = '';
+
+document.getElementById('badge').textContent = parseInt(localStorage.getItem('carrito') || '0');
+
+// Verificar sesión
+const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+const token = localStorage.getItem('token');
+if (!usuario || !token) {
+  alert('Debes iniciar sesión para ver tus pedidos.');
+  window.location.href = 'login.html';
+}
+
+// Nav sesión
+function renderNavSesion() {
+  const el = document.getElementById('nav-sesion');
+  if (usuario) {
+    el.innerHTML = `
+      <span style="font-size:1.4rem;color:rgba(245,244,240,0.6);">Hola, ${usuario.nombre.split(' ')[0]}</span>
+      <button onclick="cerrarSesion()" style="background:transparent;border:1px solid rgba(255,255,255,0.22);color:#f5f4f0;font-family:'Comic Sans MS';font-size:1.4rem;padding:0.8rem 2rem;border-radius:4px;cursor:pointer;">
+        Cerrar sesión
+      </button>`;
+  } else {
+    el.innerHTML = `<a href="login.html" class="btn-ingresar">Ingresar</a>`;
+  }
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('sesionActiva');
+  localStorage.removeItem('usuario');
+  window.location.href = 'login.html';
+}
+
+// Formato precio
+function formatPrecio(n) { return '$' + Number(n).toLocaleString('es-CO'); }
+
+// Formato fecha
+function formatFecha(f) {
+  if (!f) return '—';
+  return new Date(f).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// Badge de estado
+function estadoBadge(estado) {
+  const e = (estado || 'pendiente').toLowerCase().replace(' ', '-');
+  const clase = {
+    'pendiente': 'estado-pendiente',
+    'en-preparacion': 'estado-preparacion',
+    'despachado': 'estado-despachado',
+    'entregado': 'estado-entregado',
+    'cancelado': 'estado-cancelado'
+  }[e] || 'estado-pendiente';
+  return `<span class="estado-badge ${clase}">${estado || 'pendiente'}</span>`;
+}
+
+// Cargar pedidos del usuario
+async function cargarPedidos() {
+  try {
+    const res = await fetch(`${API}/api/pedidos`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const todos = await res.json();
+    // Filtrar solo los del usuario actual
+    todosPedidos = todos.filter(p => p.id_usuario === usuario.id);
+    renderPedidos(todosPedidos);
+  } catch (error) {
+    document.getElementById('lista').innerHTML = `<div class="pedidos-vacio"><p>Error cargando pedidos. Intenta de nuevo.</p></div>`;
+  }
+}
+
+// Renderizar lista
+function renderPedidos(lista) {
+  const contenedor = document.getElementById('lista');
+  if (lista.length === 0) {
+    contenedor.innerHTML = `
+      <div class="pedidos-vacio">
+        <p>No tienes pedidos ${filtroActual ? 'con ese estado' : 'todavía'}.</p>
+        <a href="catalogo.html" style="background:#e85c2b;color:white;padding:1.2rem 2.8rem;border-radius:4px;text-decoration:none;font-size:1.6rem;">Ver catálogo</a>
+      </div>`;
+    return;
+  }
+
+  contenedor.innerHTML = lista.map(p => `
+    <div class="pedido-card" id="pedido-${p.id_pedido}">
+      <div class="pedido-header" onclick="toggleDetalle(${p.id_pedido})">
+        <div class="pedido-left">
+          <span class="pedido-id">Pedido #${p.id_pedido}</span>
+          <span class="pedido-fecha">${formatFecha(p.fecha_pedido)}</span>
+          ${estadoBadge(p.estado_pedido)}
+        </div>
+        <div class="pedido-right">
+          <span class="pedido-total">${formatPrecio(p.total_pedido)}</span>
+          <span class="pedido-chevron">▼</span>
+        </div>
+      </div>
+      <div class="pedido-detalle" id="detalle-${p.id_pedido}">
+        <div class="detalle-info">
+          <div class="info-campo">
+            <label>Método de pago</label>
+            <span>${p.metodo_pago || '—'}</span>
+          </div>
+          <div class="info-campo">
+            <label>Entrega estimada</label>
+            <span>${formatFecha(p.fecha_entrega_est)}</span>
+          </div>
+          <div class="info-campo">
+            <label>Dirección de envío</label>
+            <span>${p.dir_envio || '—'}</span>
+          </div>
+        </div>
+        <div class="detalle-productos" id="productos-${p.id_pedido}">
+          <p class="detalle-productos-titulo">Cargando productos...</p>
+        </div>
+        ${p.estado_pedido === 'pendiente' ? `
+        <div class="pedido-acciones">
+          <button class="btn-cancelar" onclick="cancelarPedido(${p.id_pedido})">Cancelar pedido</button>
+        </div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// Toggle abrir/cerrar detalle
+async function toggleDetalle(id) {
+  const card = document.getElementById(`pedido-${id}`);
+  const estaAbierto = card.classList.contains('abierto');
+
+  // Cerrar todos
+  document.querySelectorAll('.pedido-card').forEach(c => c.classList.remove('abierto'));
+
+  if (!estaAbierto) {
+    card.classList.add('abierto');
+    await cargarDetalleProductos(id);
+  }
+}
+
+// Cargar productos del pedido
+async function cargarDetalleProductos(id_pedido) {
+  const contenedor = document.getElementById(`productos-${id_pedido}`);
+  try {
+    const res = await fetch(`${API}/api/pedidos/${id_pedido}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const detalles = data.detalles || [];
+
+    if (detalles.length === 0) {
+      contenedor.innerHTML = `<p class="detalle-productos-titulo">Sin productos registrados</p>`;
+      return;
+    }
+
+    contenedor.innerHTML = `
+      <p class="detalle-productos-titulo">Productos</p>
+      ${detalles.map(d => `
+        <div class="producto-row">
+          <span class="prod-nombre-det">${d.nom_producto || 'Producto'}</span>
+          <span class="prod-qty-det">x${d.cantidad_pedido}</span>
+          <span class="prod-precio-det">${formatPrecio(d.subtotal_pedido)}</span>
+        </div>`).join('')}`;
+  } catch {
+    contenedor.innerHTML = `<p class="detalle-productos-titulo">Error cargando productos</p>`;
+  }
+}
+
+// Cancelar pedido
+async function cancelarPedido(id) {
+  if (!confirm('¿Estás seguro de que deseas cancelar este pedido?')) return;
+  try {
+    const res = await fetch(`${API}/api/pedidos/${id}/estado`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ estado_pedido: 'cancelado' })
+    });
+    if (!res.ok) throw new Error();
+    alert('Pedido cancelado correctamente.');
+    cargarPedidos();
+  } catch {
+    alert('Error al cancelar el pedido. Intenta de nuevo.');
+  }
+}
+
+// Filtrar por estado
+function filtrarEstado(estado) {
+  filtroActual = estado;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const filtrados = estado ? todosPedidos.filter(p => p.estado_pedido === estado) : todosPedidos;
+  renderPedidos(filtrados);
+}
+
+async function toggleNotificaciones() {
+  const panel = document.getElementById('panel-notificaciones');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    await cargarNotificaciones();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+async function cargarNotificaciones() {
+  const contenedor = document.getElementById('lista-notificaciones');
+  try {
+    const res = await fetch(`${API}/api/notificaciones/${usuario.id}`);
+    const data = await res.json();
+    if (data.length === 0) {
+      contenedor.innerHTML = '<p style="color:rgba(245,244,240,0.4);">Sin notificaciones.</p>';
+      return;
+    }
+    contenedor.innerHTML = data.map(n => `
+      <div style="padding:1.2rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <p style="font-size:1.4rem;color:#f5f4f0;margin-bottom:0.4rem;">${n.mensaje_notificacion}</p>
+        <p style="font-size:1.2rem;color:rgba(245,244,240,0.4);">${new Date(n.fecha_envio).toLocaleDateString('es-CO', {year:'numeric',month:'long',day:'numeric'})}</p>
+      </div>`).join('');
+  } catch {
+    contenedor.innerHTML = '<p style="color:rgba(245,244,240,0.4);">Error cargando notificaciones.</p>';
+  }
+}
+
+renderNavSesion();
+cargarPedidos();
+</script>
+</body>
+</html>

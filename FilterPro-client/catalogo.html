@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FilterPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 62.5%; }
+  body { font-family: 'DM Sans', sans-serif; font-size: 1.6rem; background: #0d0d0d; color: #f5f4f0; min-height: 100vh; display: flex; flex-direction: column; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.8rem 5%; background: #0d0d0d; border-bottom: 1px solid rgba(255,255,255,0.07); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+  .btn-nav.active { position: relative; background: transparent; border: 1px solid rgba(255, 255, 255, 0.22); color: #f5f4f0; font-family: 'Comic Sans MS';font-size: 1.4rem; padding: 0.8rem 1.8rem; border-radius: 4px; text-decoration: none;background: rgba(232,92,43,0.15); border-color: #e85c2b; color: #e85c2b; }
+  .logo { font-family: 'Fredoka One', cursive; font-weight: 400; font-size: 2.2rem; color: #f5f4f0; text-decoration: none; letter-spacing: -0.02em; }
+  .logo span { color: #e85c2b; }
+  .nav-links { display: flex; gap: 3.2rem; list-style: none; }
+  .nav-links a { font-size: 1.5rem; color: rgba(245,244,240,0.55); text-decoration: none; }
+  .nav-links a.active { color: #f5f4f0; }
+  .nav-right { display: flex; align-items: center; gap: 1.2rem; }
+  .btn-carrito { position: relative; background: transparent; border: 1px solid rgba(255,255,255,0.22); color: #f5f4f0; font-family: 'Comic Sans MS'; font-size: 1.4rem; padding: 0.8rem 1.8rem; border-radius: 4px; text-decoration: none; }
+  .badge { position: absolute; top: -7px; right: -7px; background: #e85c2b; color: white; font-size: 1rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .btn-ingresar { background: #f5f4f0; color: #0d0d0d; font-family: 'Comic Sans MS'; font-size: 1.4rem; font-weight: 500; padding: 0.8rem 2rem; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; }
+  .btn-ayuda { background: transparent; color: rgba(245,244,240,0.55); font-family: 'DM Sans', sans-serif; font-size: 1.7rem; padding: 0.8rem 1.8rem; border-radius: 6px; border: none; text-decoration: none; transform: translateX(40px)}
+  
+  main { padding-top: 8rem; flex: 1; }
+
+  /* SELECTOR */
+  .selector-section { background: #111; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 3.2rem 5%; }
+  .selector-inner { max-width: 110rem; margin: 0 auto; }
+  .selector-title { font-family: 'Comic Sans MS'; font-size: 1.2rem; font-weight: 700; color: rgba(245,244,240,0.4); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.6rem; }
+  .selector-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 1.2rem; align-items: end; }
+  .sel-field label { display: block; font-size: 1.2rem; color: rgba(245,244,240,0.45); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.7rem; }
+  .sel-field select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #f5f4f0; font-family: 'Comic Sans MS', sans-serif; font-size: 1.4rem; padding: 1.1rem 1.4rem; border-radius: 4px; appearance: none; cursor: pointer; }
+  .sel-field select:focus { outline: none; border-color: #e85c2b; }
+  .sel-field select option { background: #1a1a1a; }
+  .btn-buscar { background: #e85c2b; color: white; border: none; font-family: 'Comic Sans MS', sans-serif; font-size: 1.4rem; font-weight: 500; padding: 1.1rem 2.4rem; border-radius: 4px; cursor: pointer; white-space: nowrap; height: fit-content; }
+  .btn-buscar:hover { background: #cf4e23; }
+
+  /* CONTENIDO */
+  .catalogo-body { max-width: 110rem; margin: 0 auto; padding: 4rem 5%; }
+  .catalogo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3.2rem; }
+  .catalogo-header h2 { font-family: 'Comic Sans MS'; font-size: 2.4rem; font-weight: 700; letter-spacing: -0.02em; }
+  .resultado-count { font-size: 1.4rem; color: rgba(245,244,240,0.4); }
+
+  /* GRID PRODUCTOS */
+  .productos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .producto-card { background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
+  .producto-card:hover { transform: translateY(-3px); border-color: rgba(232,92,43,0.4); }
+  .prod-img { aspect-ratio: 4/3; background: linear-gradient(135deg, #1e1e1e 0%, #1a2a3a 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+  .prod-tipo { position: absolute; top: 1rem; left: 1rem; background: #e85c2b; color: white; font-size: 1.1rem; font-weight: 500; padding: 0.3rem 0.9rem; border-radius: 2px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .prod-img svg { width: 5rem; height: 5rem; opacity: 0.18; fill: #f5f4f0; }
+  .prod-info { padding: 1.6rem; }
+  .prod-nombre { font-family: 'Comic Sans MS'; font-size: 1.5rem; font-weight: 700; color: #f5f4f0; margin-bottom: 0.4rem; letter-spacing: -0.01em; }
+  .prod-ref { font-size: 1.2rem; color: rgba(245,244,240,0.38); margin-bottom: 1.4rem; }
+  .prod-footer { display: flex; align-items: center; justify-content: space-between; }
+  .prod-precio { font-family: 'Comic Sans MS'; font-size: 1.9rem; font-weight: 500; color: #f5f4f0; letter-spacing: -0.02em; }
+  .btn-add { background: #f5f4f0; color: #0d0d0d; border: none; font-size: 1.2rem; font-weight: 500; padding: 0.7rem 1.4rem; border-radius: 4px; cursor: pointer; font-family: 'Comic Sans MS'; transition: background 0.2s; }
+  .btn-add:hover { background: #e85c2b; color: white; }
+
+  /* FOOTER */
+  footer { background: #0d0d0d; padding: 5.6rem 5% 3rem; margin-top: auto; }
+  .footer-grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr; gap: 4rem; padding-bottom: 4rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 2.8rem; }
+  .footer-brand .logo { display: inline-block; margin-bottom: 1.6rem; }
+  .footer-desc { font-size: 1.4rem; line-height: 1.75; color: rgba(245,244,240,0.38); max-width: 30rem; }
+  .footer-col h4 { font-family: 'Comic Sans MS'; font-size: 1.2rem; font-weight: 700; color: #f5f4f0; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.8rem; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 1.1rem; }
+  .footer-col ul a { font-size: 1.4rem; color: rgba(245,244,240,0.40); text-decoration: none; }
+  .footer-col ul a:hover { color: rgba(245,244,240,0.8); }
+  .footer-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .footer-copy { font-size: 1.3rem; color: rgba(245,244,240,0.22); }
+
+  @media (max-width: 960px) { .selector-grid { grid-template-columns: 1fr 1fr; } .btn-buscar { grid-column: 1/-1; } .productos-grid { grid-template-columns: repeat(2,1fr); } .nav-links { display: none; } .footer-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .productos-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Filter<span>Pro</span></a>
+    <ul class="nav-links">
+    <li><a href="ayuda.html">Ayuda</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="carrito.html" class="btn-carrito">Carrito</a>
+    <a href="mis-pedidos.html" class="btn-nav active">Mis pedidos</a>
+    <div id="nav-sesion"></div>
+  </div>
+</nav>
+
+<main>
+  <div class="selector-section">
+    <div class="selector-inner">
+      <p class="selector-title">Busca por tu vehículo</p>
+      <div class="selector-grid">
+        <div class="sel-field">
+          <label>Tipo</label>
+          <select id="tipo"><option value="">Auto / Moto</option><option value="Automóvil">Automóvil</option><option value="Motocicleta">Motocicleta</option></select>
+        </div>
+        <div class="sel-field">
+          <label>Marca</label>
+          <select id="marca"><option value="">Selecciona marca</option><option>Chevrolet</option><option>Renault</option><option>Toyota</option><option>Mazda</option><option>Honda</option><option>Yamaha</option><option>Suzuki</option></select>
+        </div>
+        <div class="sel-field">
+          <label>Modelo</label>
+          <select id="modelo"><option value="">Selecciona modelo</option></select>
+        </div>
+        <div class="sel-field">
+          <label>Tipo de filtro</label>
+          <select id="filtro"><option value="">Todos</option><option value="Aire">Aire</option><option value="Aceite">Aceite</option><option value="Combustible">Combustible</option></select>
+        </div>
+        <button class="btn-buscar" onclick="filtrar()">Buscar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="catalogo-body">
+    <div class="catalogo-header">
+      <h2>Todos los filtros</h2>
+      <span class="resultado-count" id="count">Mostrando 8 productos</span>
+    </div>
+    <div class="productos-grid" id="grid">
+      <!-- Se genera con JS -->
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand"><a href="index.html" class="logo">Filter<span>Pro</span></a><p class="footer-desc">Venta en línea de filtros vehiculares para autos y motos.</p></div>
+    <div class="footer-col"><h4>Navegación</h4><ul><li><a href="index.html">Inicio</a></li><li><a href="contacto.html">Contacto</a></li></ul></div>
+    <div class="footer-col"><h4>Cuenta</h4><ul><li><a href="login.html">Ingresar</a></li><li><a href="login.html#registro">Registrar</a></li><li><a href="carrito.html">Carrito</a></li></ul></div>
+  </div>
+  <div class="footer-bottom"><span class="footer-copy">© 2025 FilterPro - Proyecto universitario</span><span class="footer-copy">Filtros para autos y motocicletas</span></div>
+</footer>
+
+<script>
+let todosLosProductos = [];
+const API = 'http://localhost:3000';
+
+// Cargar marcas según tipo de vehículo
+document.getElementById('tipo').addEventListener('change', async function() {
+  const res = await fetch(`${API}/api/marcas?tipo_vehiculo=${this.value}`);
+  const marcas = await res.json();
+  const sel = document.getElementById('marca');
+  sel.innerHTML = '<option value="">Selecciona marca</option>';
+  marcas.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id_marca;
+    o.textContent = m.nom_marca;
+    sel.appendChild(o);
+  });
+});
+
+// Cargar modelos según marca
+document.getElementById('marca').addEventListener('change', async function() {
+  const res = await fetch(`${API}/api/modelos?id_marca=${this.value}`);
+  const modelos = await res.json();
+  const sel = document.getElementById('modelo');
+  sel.innerHTML = '<option value="">Selecciona modelo</option>';
+  modelos.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id_modelo;
+    o.textContent = m.nom_modelo;
+    sel.appendChild(o);
+  });
+});
+
+// Buscar productos con filtros
+async function filtrar() {
+  const tipoVehiculo = document.getElementById('tipo').value;
+  const idMarca      = document.getElementById('marca').value;
+  const idModelo     = document.getElementById('modelo').value;
+  const tipoFiltro   = document.getElementById('filtro').value;
+
+  let url = `${API}/api/productos?`;
+  if (tipoVehiculo) url += `id_tipo_vehiculo=${tipoVehiculo === 'Automóvil' ? 1 : 2}&`;
+  if (idMarca)      url += `id_marca=${idMarca}&`;
+  if (idModelo)     url += `id_modelo=${idModelo}&`;
+  if (tipoFiltro)   url += `id_tipo_filtro=${tipoFiltro === 'Aire' ? 1 : tipoFiltro === 'Aceite' ? 2 : 3}&`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+  renderGrid(data);
+}
+
+
+// Renderizar cards
+function renderGrid(lista) {
+  const grid = document.getElementById('grid');
+  document.getElementById('count').textContent = `Mostrando ${lista.length} producto${lista.length !== 1 ? 's' : ''}`;
+
+  if (lista.length === 0) {
+    grid.innerHTML = `<p style="color:rgba(245,244,240,0.35);font-size:1.5rem;grid-column:1/-1;">No se encontraron productos con esos filtros.</p>`;
+    return;
+  }
+
+  // Colores por tipo de filtro
+  const colores = {
+    'Aire':        { bg: 'rgba(59,130,246,0.15)', color: '#60a5fa' },
+    'Aceite':      { bg: 'rgba(234,179,8,0.15)',  color: '#facc15' },
+    'Combustible': { bg: 'rgba(232,92,43,0.15)',  color: '#e85c2b' },
+  };
+
+  grid.innerHTML = lista.map(p => {
+    const tipo = p.nom_filtro || 'Aire';
+    const estilo = colores[tipo] || colores['Aire'];
+    const imgSrc = p.imagen ? `./Img/${p.imagen}` : '';
+    const ref = p.referencia || '—';
+
+    return `
+    <div class="producto-card">
+      <div class="prod-img">
+        <span class="prod-tipo" style="background:${estilo.bg};color:${estilo.color};border:1px solid ${estilo.color}33;">
+          ${tipo}
+        </span>
+        ${imgSrc
+          ? `<img src="${imgSrc}" alt="${p.nom_producto}"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+              style="width:100%;height:100%;object-fit:cover;display:block;">
+             <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;opacity:0.15;">
+               <svg viewBox="0 0 40 40" width="50" height="50" fill="#f5f4f0">
+                 <circle cx="20" cy="20" r="13" stroke="#f5f4f0" stroke-width="2" fill="none"/>
+                 <circle cx="20" cy="20" r="6" stroke="#f5f4f0" stroke-width="2" fill="none"/>
+               </svg>
+             </div>`
+          : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0.15;">
+               <svg viewBox="0 0 40 40" width="50" height="50" fill="#f5f4f0">
+                 <circle cx="20" cy="20" r="13" stroke="#f5f4f0" stroke-width="2" fill="none"/>
+                 <circle cx="20" cy="20" r="6" stroke="#f5f4f0" stroke-width="2" fill="none"/>
+               </svg>
+             </div>`
+        }
+      </div>
+      <div class="prod-info">
+        <p class="prod-nombre">${p.nom_producto}</p>
+        <p class="prod-ref">Ref: ${ref}</p>
+        <div class="prod-footer">
+          <span class="prod-precio">$${Number(p.pre_producto).toLocaleString('es-CO')}</span>
+          ${p.stock_producto === 0 
+  ? `<button class="btn-add" style="background:#333;color:rgba(255,255,255,0.4);cursor:not-allowed;" onclick="alertaStock(${p.id_producto})">Agotado</button>`
+  : `<button class="btn-add" onclick="agregarCarrito('${p.nom_producto}','${p.pre_producto}',${p.id_producto},${p.id_tipo_vehiculo})">Agregar</button>`
+}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function agregarCarrito(nombre, precio, id, tipoVehiculo) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Debes iniciar sesión para agregar productos al carrito.');
+    window.location.href = 'login.html';
+    return;
+  }
+  let carrito = JSON.parse(localStorage.getItem('carritoItems') || '[]');
+  const idx = carrito.findIndex(i => i.nombre === nombre);
+  if (idx > -1) carrito[idx].qty++;
+  else carrito.push({ nombre, precio, qty: 1, id_producto: id, id_tipo_vehiculo: tipoVehiculo });
+  localStorage.setItem('carritoItems', JSON.stringify(carrito));
+  const total = carrito.reduce((a, i) => a + i.qty, 0);
+  localStorage.setItem('carrito', total);
+  alert(`"${nombre}" agregado al carrito.`);
+}
+
+const badge = document.getElementById('badge');
+
+if (badge) badge.textContent = parseInt(localStorage.getItem('carrito') || '0');(localStorage.getItem('carrito') || '0');
+
+function renderNavSesion() {
+const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+const el = document.getElementById('nav-sesion');
+if (usuario) {
+  el.innerHTML = `
+      <span style="font-size:1.6rem;color:#ffffff;">Hola, ${usuario.nombre.split(' ')[0]}</span>
+      <button onclick="cerrarSesion()" style="background:transparent;border:1px solid rgba(255,255,255,0.22);color:#f5f4f0;font-family:'Comic Sans MS';font-size:1.4rem;padding:0.8rem 2rem;border-radius:4px;cursor:pointer; transform: translateX(20px);">
+        Cerrar sesión
+      </button>`;
+} else {
+  el.innerHTML = `<a href="login.html" class="btn-ingresar">Ingresar</a>`;
+}
+}
+
+async function alertaStock(id_producto) {
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+  const token = localStorage.getItem('token');
+  if (!usuario || !token) {
+    alert('Debes iniciar sesión para registrar una alerta.');
+    window.location.href = 'login.html';
+    return;
+  }
+  try {
+    const res = await fetch(`${API}/api/alertas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id_usuario: usuario.id, id_producto })
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error); return; }
+    alert('Te notificaremos cuando el producto esté disponible.');
+  } catch { alert('Error al registrar la alerta.'); }
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('sesionActiva');
+  localStorage.removeItem('usuario');
+  window.location.href = 'login.html';
+}
+
+document.addEventListener('DOMContentLoaded', renderNavSesion);
+
+fetch(`${API}/api/productos`)
+  .then(r => r.json())
+  .then(data => {
+    todosLosProductos = data;
+    renderGrid(data);
+  });
+</script>
+</body>
+</html>
